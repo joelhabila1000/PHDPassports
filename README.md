@@ -51,6 +51,22 @@ The portal needs a host with a persistent database. Two straightforward options:
 Push the repo to GitHub, then in Render choose **New → Blueprint** and point it at the repo.
 `DATABASE_URL` is injected automatically.
 
+### Vercel
+
+The portal runs on Vercel too. `api/index.js` mounts the same Express app as a serverless
+function and `vercel.json` rewrites every `/api/*` request into it; everything in `public/`
+is served as static files.
+
+```bash
+vercel link
+vercel env add DATABASE_URL production   # Neon, Supabase or any Postgres URL
+vercel --prod
+```
+
+Two serverless limits worth knowing: request bodies are capped at 4.5 MB (the form already
+limits uploads to 4 MB), and the "all passports" ZIP has to finish within the function's
+60-second budget, which comfortably covers a few hundred students.
+
 ### Railway / Fly.io / any Docker host
 
 1. Provision a Postgres instance (Railway: **New → Database → PostgreSQL**).
