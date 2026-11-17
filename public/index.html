@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>PhD Passport Submission · Ajayi Crowther University</title>
+    <meta
+      name="description"
+      content="Submit your title, full name, matric number and passport photograph for the Ajayi Crowther University doctoral student register."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#student-form">Skip to form</a>
+
+    <header class="masthead">
+      <div class="masthead__inner">
+        <a class="brand" href="/">
+          <svg class="brand__mark" viewBox="0 0 48 48" role="img" aria-label="Ajayi Crowther University crest">
+            <circle cx="24" cy="24" r="22.5" fill="none" stroke="currentColor" stroke-opacity="0.35" />
+            <circle cx="24" cy="24" r="18.5" fill="none" stroke="#c9a227" stroke-width="1.5" />
+            <path d="M24 10.5 27.6 19.4 37 20.1 29.8 26.3 32 35.4 24 30.5 16 35.4 18.2 26.3 11 20.1 20.4 19.4Z" fill="#c9a227" fill-opacity="0.16" />
+            <text x="24" y="29" text-anchor="middle" font-family="Georgia, serif" font-size="11.5" font-weight="700" fill="currentColor">ACU</text>
+          </svg>
+          <span class="brand__text">
+            <strong>Ajayi Crowther University</strong>
+            <span>Postgraduate College · Doctoral Register</span>
+          </span>
+        </a>
+      </div>
+    </header>
+
+    <main class="shell shell--split" id="main">
+      <section class="intro">
+        <p class="eyebrow">PhD students · 2025/2026 session</p>
+        <h1>Submit your passport photograph and bio-data</h1>
+        <p class="lede">
+          The Postgraduate College is compiling the doctoral register. Provide your title, full name,
+          matric number and a recent passport photograph. Each photograph is filed under your matric
+          number.
+        </p>
+
+        <ol class="steps">
+          <li>
+            <span><strong>Fill in your details</strong> exactly as they appear on your admission letter.</span>
+          </li>
+          <li>
+            <span><strong>Attach one passport photograph.</strong> Plain background, face forward, no filter.</span>
+          </li>
+          <li>
+            <span><strong>Keep the confirmation.</strong> It shows the file name your photograph was saved as.</span>
+          </li>
+        </ol>
+
+        <dl class="facts">
+          <div>
+            <dt>Photograph format</dt>
+            <dd>JPG, PNG or WEBP · up to 4 MB</dd>
+          </div>
+          <div>
+            <dt>Saved as</dt>
+            <dd>Your matric number, e.g. <span class="mono">ACU-PHD-0119.jpg</span></dd>
+          </div>
+          <div>
+            <dt>Resubmitting</dt>
+            <dd>Submitting an existing matric number replaces the previous record.</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="panel" aria-labelledby="form-heading">
+        <div id="form-view">
+          <div class="panel__head">
+            <h2 id="form-heading">Student details</h2>
+            <span class="panel__note">All fields required</span>
+          </div>
+
+          <div class="alert" id="form-alert" role="alert" hidden></div>
+
+          <form id="student-form" novalidate>
+            <div class="field">
+              <label class="field__label" for="title">Title</label>
+              <select id="title" name="title" aria-describedby="title-error" required>
+                <option value="">Select your title</option>
+                <option>Mr.</option>
+                <option>Mrs.</option>
+                <option>Miss</option>
+                <option>Ms.</option>
+                <option>Dr.</option>
+                <option>Prof.</option>
+              </select>
+              <p class="field__error" id="title-error"></p>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="fullName">Full name</label>
+              <input
+                type="text"
+                id="fullName"
+                name="fullName"
+                autocomplete="name"
+                placeholder="Surname first, then first name"
+                aria-describedby="fullName-hint fullName-error"
+                required
+              />
+              <p class="field__hint" id="fullName-hint">As printed on your admission letter.</p>
+              <p class="field__error" id="fullName-error"></p>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="matricNumber">Matric number</label>
+              <input
+                type="text"
+                id="matricNumber"
+                name="matricNumber"
+                inputmode="text"
+                autocapitalize="characters"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="ACU/PGD/24/001"
+                aria-describedby="matricNumber-hint matricNumber-error"
+                required
+              />
+              <p class="field__hint" id="matricNumber-hint">
+                Letters, numbers, "/" or "-". This becomes your photograph's file name.
+              </p>
+              <p class="field__error" id="matricNumber-error"></p>
+            </div>
+
+            <div class="field">
+              <span class="field__label" id="passport-label">Passport photograph</span>
+
+              <div id="dropzone-wrap">
+                <label class="dropzone" id="dropzone">
+                  <input
+                    type="file"
+                    id="passport"
+                    name="passport"
+                    accept="image/jpeg,image/png,image/webp"
+                    aria-labelledby="passport-label"
+                    aria-describedby="passport-error"
+                  />
+                  <svg class="dropzone__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6">
+                    <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke-linecap="round" />
+                  </svg>
+                  <span class="dropzone__title">Choose a photograph</span>
+                  <span class="dropzone__meta">or drag it here · JPG, PNG, WEBP · 4 MB max</span>
+                </label>
+              </div>
+
+              <div class="preview" id="preview" hidden>
+                <img id="preview-image" alt="Preview of the selected passport photograph" />
+                <div>
+                  <p class="preview__name" id="preview-name"></p>
+                  <p class="preview__meta" id="preview-meta"></p>
+                </div>
+                <div class="preview__actions">
+                  <button type="button" class="btn btn--secondary" id="change-photo">Change</button>
+                  <button type="button" class="btn btn--ghost" id="remove-photo">Remove</button>
+                </div>
+              </div>
+
+              <p class="field__error" id="passport-error"></p>
+            </div>
+
+            <button type="submit" class="btn btn--primary" id="submit-button">
+              <span id="submit-label">Submit details</span>
+            </button>
+          </form>
+        </div>
+
+        <div class="receipt" id="receipt" hidden>
+          <span class="receipt__badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+              <path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Record saved
+          </span>
+          <h2 id="receipt-heading">Your details have been submitted</h2>
+          <p class="lede" id="receipt-message" style="font-size: 1rem; max-width: 44ch"></p>
+          <div class="receipt__grid">
+            <img class="receipt__photo" id="receipt-photo" alt="" />
+            <dl>
+              <div>
+                <dt>Full name</dt>
+                <dd id="receipt-name"></dd>
+              </div>
+              <div>
+                <dt>Matric number</dt>
+                <dd class="mono" id="receipt-matric"></dd>
+              </div>
+              <div>
+                <dt>Photograph saved as</dt>
+                <dd class="mono" id="receipt-file"></dd>
+              </div>
+            </dl>
+          </div>
+          <div class="receipt__actions">
+            <button type="button" class="btn btn--secondary" id="submit-another">Submit another student</button>
+            <a class="btn btn--secondary" id="receipt-download" href="#" download>Download my photograph</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer__inner">
+        <span>Postgraduate College, Ajayi Crowther University, Oyo, Nigeria.</span>
+        <span>Records are held by the College and used for student documentation only.</span>
+      </div>
+    </footer>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
