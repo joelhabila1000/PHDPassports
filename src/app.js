@@ -1,5 +1,6 @@
 import express from 'express';
 import multer from 'multer';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { asBuffer, driverName } from './db.js';
@@ -18,7 +19,12 @@ import {
 } from './students.js';
 import { buildCsv, buildPassportArchive, buildXlsx } from './exports.js';
 
-const publicDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
+const rootDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const publicDir = path.join(rootDir, 'public');
+const privateDir = path.join(rootDir, 'private');
+
+const ADMIN_KEY = (process.env.ADMIN_KEY || '').trim();
+const ADMIN_COOKIE = 'acu_registry';
 
 class HttpError extends Error {
   constructor(status, message) {
@@ -51,9 +57,74 @@ function publicStudent(student) {
     matricNumber: student.matric_number,
     hasPassport: Boolean(student.has_passport),
     passportFile: passportFileName(student.matric_number, student.passport_mime),
+    passportUrl: `/api/students/${student.id}/passport?t=${passportToken(student.id)}`,
     createdAt: student.created_at,
     updatedAt: student.updated_at,
   };
+}
+
+function readCookies(header) {
+  const jar = {};
+  if (!header) return jar;
+  for (const pair of header.split(';')) {
+    const split = pair.indexOf('=');
+    if (split === -1) continue;
+    jar[pair.slice(0, split).trim()] = decodeURIComponent(pair.slice(split + 1).trim());
+  }
+  return jar;
+}
+
+function keyMatches(value) {
+  if (!ADMIN_KEY || !value) return false;
+  const given = Buffer.from(String(value));
+  const expected = Buffer.from(ADMIN_KEY);
+  return given.length === expected.length && crypto.timingSafeEqual(given, expected);
+}
+
+function isAdmin(req) {
+  return (
+    keyMatches(req.query.key) ||
+    keyMatches(readCookies(req.headers.cookie)[ADMIN_COOKIE]) ||
+    keyMatches(req.get('x-admin-key'))
+  );
+}
+
+function requireAdmin(req, res, next) {
+  if (isAdmin(req)) {
+    next();
+    return;
+  }
+  res.status(401).json({ ok: false, message: 'Open the register with your access link first.' });
+}
+
+function passportToken(id) {
+  return crypto
+    .createHmac('sha256', ADMIN_KEY || 'unconfigured')
+    .update(`student:${id}`)
+    .digest('base64url')
+    .slice(0, 22);
+}
+
+function passportTokenMatches(id, token) {
+  if (!token) return false;
+  const given = Buffer.from(String(token));
+  const expected = Buffer.from(passportToken(id));
+  return given.length === expected.length && crypto.timingSafeEqual(given, expected);
+}
+
+function registryCookie(req) {
+  const secure = req.secure || req.get('x-forwarded-proto') === 'https';
+  return {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure,
+    path: '/',
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  };
+}
+
+function sendNotFound(res) {
+  res.status(404).sendFile(path.join(publicDir, '404.html'));
 }
 
 export function createApp() {
@@ -99,7 +170,7 @@ export function createApp() {
     });
   });
 
-  app.get('/api/students', async (req, res) => {
+  app.get('/api/students', requireAdmin, async (req, res) => {
     const query = String(req.query.q || '').trim();
     const students = await listStudents({ query });
     res.json({ students: students.map(publicStudent) });
@@ -108,6 +179,10 @@ export function createApp() {
   app.get('/api/students/:id/passport', async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) throw new HttpError(400, 'Invalid student id.');
+
+    if (!isAdmin(req) && !passportTokenMatches(id, req.query.t)) {
+      throw new HttpError(401, 'Open the register with your access link first.');
+    }
 
     const student = await getStudentWithPassport(id);
     const data = asBuffer(student?.passport_data);
@@ -125,7 +200,7 @@ export function createApp() {
     res.send(data);
   });
 
-  app.delete('/api/students/:id', async (req, res) => {
+  app.delete('/api/students/:id', requireAdmin, async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) throw new HttpError(400, 'Invalid student id.');
 
@@ -134,11 +209,11 @@ export function createApp() {
     res.json({ ok: true });
   });
 
-  app.get('/api/stats', async (req, res) => {
+  app.get('/api/stats', requireAdmin, async (req, res) => {
     res.json(await getStats());
   });
 
-  app.get('/api/export.csv', async (req, res) => {
+  app.get('/api/export.csv', requireAdmin, async (req, res) => {
     const students = await listStudents({ limit: 100000 });
     res.set({
       'Content-Type': 'text/csv; charset=utf-8',
@@ -148,7 +223,7 @@ export function createApp() {
     res.send(buildCsv(students));
   });
 
-  app.get('/api/export.xlsx', async (req, res) => {
+  app.get('/api/export.xlsx', requireAdmin, async (req, res) => {
     const students = await listStudents({ limit: 100000 });
     const workbook = await buildXlsx(students);
     res.set({
@@ -160,7 +235,7 @@ export function createApp() {
     res.send(workbook);
   });
 
-  app.get('/api/passports.zip', async (req, res) => {
+  app.get('/api/passports.zip', requireAdmin, async (req, res) => {
     const students = await listStudents({ limit: 100000 });
     const archive = buildPassportArchive(students, getStudentWithPassport);
 
@@ -179,6 +254,31 @@ export function createApp() {
     });
 
     archive.pipe(res);
+  });
+
+  app.get('/registry', (req, res) => {
+    if (!isAdmin(req)) {
+      sendNotFound(res);
+      return;
+    }
+    res.cookie(ADMIN_COOKIE, ADMIN_KEY, registryCookie(req));
+    res.set('Cache-Control', 'no-store');
+    res.sendFile(path.join(privateDir, 'admin.html'));
+  });
+
+  app.get('/registry/app.js', (req, res) => {
+    if (!isAdmin(req)) {
+      sendNotFound(res);
+      return;
+    }
+    res.type('application/javascript');
+    res.set('Cache-Control', 'no-store');
+    res.sendFile(path.join(privateDir, 'admin.js'));
+  });
+
+  app.post('/registry/logout', (req, res) => {
+    res.clearCookie(ADMIN_COOKIE, { path: '/' });
+    res.json({ ok: true });
   });
 
   app.use(express.static(publicDir, { extensions: ['html'] }));

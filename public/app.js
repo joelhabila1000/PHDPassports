@@ -253,11 +253,11 @@ function showReceipt(payload) {
   document.getElementById('receipt-file').textContent = student.passportFile;
 
   const photo = document.getElementById('receipt-photo');
-  photo.src = `/api/students/${student.id}/passport?inline=1`;
+  photo.src = `${student.passportUrl}&inline=1`;
   photo.alt = `Passport photograph of ${student.fullName}`;
 
   const download = document.getElementById('receipt-download');
-  download.href = `/api/students/${student.id}/passport`;
+  download.href = student.passportUrl;
   download.setAttribute('download', student.passportFile);
 
   formView.hidden = true;
